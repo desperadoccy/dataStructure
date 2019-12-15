@@ -1,6 +1,0 @@
-﻿  成绩管理框架.cpp
-D:\论文及其他文章\数据结构\课设\keshe\keshe\成绩管理框架.cpp(212,21): warning C4018:  “<”: 有符号/无符号不匹配
-D:\论文及其他文章\数据结构\课设\keshe\keshe\成绩管理框架.cpp(242,21): warning C4018:  “<”: 有符号/无符号不匹配
-D:\论文及其他文章\数据结构\课设\keshe\keshe\成绩管理框架.cpp(411,21): warning C4018:  “<”: 有符号/无符号不匹配
-D:\论文及其他文章\数据结构\课设\keshe\keshe\成绩管理框架.cpp(441,21): warning C4018:  “<”: 有符号/无符号不匹配
-  keshe.vcxproj -> D:\论文及其他文章\数据结构\课设\keshe\Debug\keshe.exe

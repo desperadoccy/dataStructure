@@ -1,0 +1,7 @@
+﻿D:\IDE\VisualStudioIDE\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(459,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (keshe.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  成绩管理框架.cpp
+D:\论文及其他文章\数据结构\课设\keshe1\keshe\成绩管理框架.cpp(212,21): warning C4018: “<”: 有符号/无符号不匹配
+D:\论文及其他文章\数据结构\课设\keshe1\keshe\成绩管理框架.cpp(242,21): warning C4018: “<”: 有符号/无符号不匹配
+D:\论文及其他文章\数据结构\课设\keshe1\keshe\成绩管理框架.cpp(411,21): warning C4018: “<”: 有符号/无符号不匹配
+D:\论文及其他文章\数据结构\课设\keshe1\keshe\成绩管理框架.cpp(441,21): warning C4018: “<”: 有符号/无符号不匹配
+  keshe.vcxproj -> D:\论文及其他文章\数据结构\课设\keshe1\Debug\keshe1.exe

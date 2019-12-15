@@ -1,0 +1,3 @@
+﻿  6.cpp
+D:\论文及其他文章\数据结构\课设\keshe6\keshe6\6.cpp(77,11): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+  keshe6.vcxproj -> D:\论文及其他文章\数据结构\课设\keshe6\Debug\keshe6.exe
