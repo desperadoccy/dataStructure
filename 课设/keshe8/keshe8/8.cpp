@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#define MAXN 200
+#define mmax 0x3ffffff
 
 using namespace std;
 
@@ -93,10 +95,133 @@ void showgraph(GH* G)
 	cout << endl;
 }
 
+void showRoute(GH* G, int(*p)[200], int i, int j)
+{
+	if (p[i][j] == i)
+	{
+		cout << G->vexname[i];
+		return;
+	}
+	showRoute(G, p, i, p[i][j]);
+	cout << "--" << G->vexname[p[i][j]];
+}
+void showRouteD(GH* G, int* pre, int i, int j)
+{
+	if (pre[j] == i)
+	{
+		cout << G->vexname[i];
+		return;
+	}
+	showRouteD(G, pre, i, pre[j]);
+	cout << "--" << G->vexname[pre[j]];
+}
+
+void floyd(GH* G)
+{
+	int d[MAXN][MAXN], p[MAXN][MAXN];
+	int i, j, k, l;
+	l = G->vexnum;
+
+	for (i = 0; i < l; i++)
+		for (j = 0; j < l; j++)
+		{
+			if (i == j) d[i][j] = 0;
+			else d[i][j] = mmax;
+			p[i][j] = i;
+		}
+	for (i = 0; i < l; i++)
+	{
+		AR* p;
+		p = G->N[i].next;
+		while (p)
+		{
+			d[i][p->index] = p->val;
+			p = p->next;
+		}
+	}
+	for (k = 0; k < l; k++)
+		for (i = 0; i < l; i++)
+			for (j = 0; j < l; j++)
+				if (d[i][j] > d[i][k] + d[k][j])
+				{
+					d[i][j] = d[i][k] + d[k][j];
+					p[i][j] = p[k][j];
+				}
+	for (i = 0; i < l; i++)
+		for (j = 0; j < l; j++)
+		{
+			if (d[i][j] == mmax || i == j) continue;
+			cout << G->vexname[i] << "到" << G->vexname[j] << "的最短路径长度为" << d[i][j] << endl;
+			cout << "其最短路径为：";
+			k = p[i][j];
+			showRoute(G, p, i, j);
+			cout << "--" << G->vexname[j] << endl;
+		}
+}
+
+void dijkstra(GH* G)
+{
+	int d[MAXN][MAXN], pre[MAXN];
+	bool vis[MAXN];
+	int i, j, k, l, m;
+	l = G->vexnum;
+
+	for (i = 0; i < l; i++)
+		for (j = 0; j < l; j++)
+		{
+			if (i == j) d[i][j] = 0;
+			else d[i][j] = mmax;
+			vis[i] = 0;
+		}
+	for (i = 0; i < l; i++)
+	{
+		for (int a = 0; a < l; a++)
+			pre[a] = a, vis[a] = 0;
+		for (j = 0; j < l; j++)
+		{
+			int k = 0, mmin = mmax;
+			for (m = 0; m < l; m++)
+				if (mmin > d[i][m] && !vis[m])
+				{
+					mmin = d[m][i];
+					k = m;
+				}
+			vis[k] = 1;
+			AR* p;
+			p = G->N[k].next;
+			while (p)
+			{
+				if (!vis[p->index] && d[i][p->index] > d[i][k] + p->val)
+				{
+					d[i][p->index] = d[i][k] + p->val;
+					pre[p->index] = k;
+				}
+				p = p->next;
+			}
+		}
+		for (j = 0; j < l; j++)
+		{
+			if (d[i][j] == mmax || i == j) continue;
+			cout << G->vexname[i] << "到" << G->vexname[j] << "的最短路径长度为" << d[i][j] << endl;
+			cout << "其最短路径为：";
+			showRouteD(G, pre, i, j);
+			cout << "--" << G->vexname[j] << endl;
+		}
+	}
+}
+
 int main()
 {
 	GH G;
 	creatgraph(&G);
 	showgraph(&G);
+	system("pause");
+	system("cls");
+	cout << "如下为floyd算法求解结果：" << endl;
+	floyd(&G);
+	system("pause");
+	system("cls");
+	cout << "如下为dijkstra算法求解结果：" << endl;
+	dijkstra(&G);
 	return 0;
 }
