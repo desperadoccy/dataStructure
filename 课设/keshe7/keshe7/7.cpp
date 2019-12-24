@@ -43,7 +43,7 @@ void creatgraph(GH* G)
 	int i, j, k;
 	int w;
 	char c1[4], c2[4], c3[40];
-	char filename[] = "7.txt";
+	char filename[] = "ÓÐÏòÍ¼.txt";
 	fp = fopen(filename, "rb");
 	if (fp == NULL)
 	{
