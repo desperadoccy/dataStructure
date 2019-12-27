@@ -130,6 +130,7 @@ void huffman(tree* T, Heap* heap, int cnt[], char (&encode)[26][100])
 {
 	for (int i = 0; i < 26; i++)
 	{
+		if (!cnt[i]) continue;
 		node t;
 		t.pos = i;
 		t.cnt = cnt[i];
@@ -170,6 +171,11 @@ int main()
 	cout << "请输入你想要读取的文件路径：";
 	cin >> str;
 	fstream file(str);
+	if (!file)
+	{
+		cout << "文件读取失败" << endl;
+		return 0;
+	}
 	while (!file.eof())
 	{
 		file.getline(c, 1000);
