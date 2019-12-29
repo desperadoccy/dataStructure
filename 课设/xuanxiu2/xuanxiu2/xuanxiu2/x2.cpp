@@ -23,7 +23,7 @@ typedef struct member
 typedef struct familytree
 {
 	member info;
-	struct familytree* bro, * fir, * fa, * prebro;
+	struct familytree* bro, * fir, * fa, * prebro, * spouse;
 }FT;
 typedef struct node
 {
@@ -91,6 +91,25 @@ FT* create(FT* A, FT* fa, FT* prebro, fstream& file)
 		file.getline(A->info.death, 12);
 		A->fir = (FT*)malloc(sizeof(FT));
 		A->bro = (FT*)malloc(sizeof(FT));
+		if (A->info.isMarried)
+		{
+			A->spouse = (FT*)malloc(sizeof(FT));
+			file.getline(t, 20);
+			strcpy(A->spouse->info.name, t);
+			file.getline(A->spouse->info.birth, 12);
+			A->spouse->info.isMarried = 1;
+			file.getline(A->spouse->info.address, 100);
+			file.getline(t, 20);
+			if (t[0] == '1')
+				A->spouse->info.isdeath = 1;
+			else
+				A->spouse->info.isdeath = 0;
+			file.getline(A->spouse->info.death, 12);
+		}
+		else
+		{
+			A->spouse = NULL;
+		}
 		A->fir = create(A->fir, A, NULL, file);
 		A->bro = create(A->bro, A->fa, A, file);
 		return A;
@@ -138,10 +157,27 @@ void save(FT* A, fstream& file)
 		file << '0' << endl;
 		file << "0000-00-00" << endl;
 	}
+	if (A->info.isMarried)
+	{
+		file << A->spouse->info.name << endl;
+		file << A->spouse->info.birth << endl;
+		file << A->spouse->info.address << endl;
+		if (A->spouse->info.isdeath)
+		{
+			file << '1' << endl;
+			file << A->spouse->info.death << endl;
+		}
+		else
+		{
+			file << '0' << endl;
+			file << "0000-00-00" << endl;
+		}
+	}
 	save(A->fir, file);
 	save(A->bro, file);
 	return;
 }
+
 void Close(FT* A)
 {
 	fstream file(filename);
@@ -167,13 +203,27 @@ void subPrint(FT* A, widget* data, int* cnt)
 	RECT r_return = { 430, 405, 495, 440 };
 	rectangle(430, 405, 495, 440);
 	drawtext(_T("返回"), &r_return, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
+	rectangle(260, 100, 380, 180);
 	//画出父亲结点
-	RECT r_pa = { 260,100,380,150 };
-	rectangle(260, 100, 380, 150);
 	//信息转换，utf-8转为Unicode，char转为wchar
-	int nRet = MultiByteToWideChar(CP_ACP, 0, A->info.name, 20, name, 20);
-	drawtext(name, &r_pa, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	if (A->info.isMarried)
+	{
+		RECT r_pa = { 260,100,380,143 };
+		RECT r_pas = { 260,137,380,180 };
+		int nRet = MultiByteToWideChar(CP_ACP, 0, A->info.name, 20, name, 20);
+		drawtext(name, &r_pa, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		setlinestyle(PS_DOT, 2, NULL);
+		line(260, 140, 380, 140);
+		setlinestyle(PS_SOLID, 2, NULL);
+		nRet = MultiByteToWideChar(CP_ACP, 0, A->spouse->info.name, 20, name, 20);
+		drawtext(name, &r_pas, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	}
+	else
+	{
+		RECT r_pa = { 260,100,380,180 };
+		int nRet = MultiByteToWideChar(CP_ACP, 0, A->info.name, 20, name, 20);
+		drawtext(name, &r_pa, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	}
 
 	//画出所有子结点
 	FT* p = A->fir;
@@ -185,17 +235,32 @@ void subPrint(FT* A, widget* data, int* cnt)
 	}
 	int x = (640 - 60 * (*cnt)) / ((*cnt) + 1);
 	int i, sx = x;
-	for (i = 0; i < *cnt; i++)
+	for (i = (*cnt) - 1; i >= 0; i--)
 	{
 		data[i].sx = sx;
 		data[i].sy = 270;
 		data[i].ex = sx + 60;
-		data[i].ey = 300;
-		RECT r_son = { sx,270,sx + 60,300 };
-		rectangle(sx, 270, sx + 60, 300);
-		line(sx + 30, 270, 320, 150);
-		int nRet = MultiByteToWideChar(CP_ACP, 0, data[i].p->info.name, 20, name, 20);
-		drawtext(name, &r_son, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		data[i].ey = 330;
+		rectangle(sx, 270, sx + 60, 330);
+		line(sx + 30, 270, 320, 180);
+		if (data[i].p->info.isMarried)
+		{
+			RECT r_son = { sx,270,sx + 60,297 };
+			RECT r_sons = { sx,303,sx + 60,330 };
+			int nRet = MultiByteToWideChar(CP_ACP, 0, data[i].p->info.name, 20, name, 20);
+			drawtext(name, &r_son, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			setlinestyle(PS_DOT, 2, NULL);
+			line(sx, 300, sx + 60, 300);
+			setlinestyle(PS_SOLID, 2, NULL);
+			nRet = MultiByteToWideChar(CP_ACP, 0, data[i].p->spouse->info.name, 20, name, 20);
+			drawtext(name, &r_sons, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		}
+		else
+		{
+			RECT r_son = { sx,270,sx + 60,330 };
+			int nRet = MultiByteToWideChar(CP_ACP, 0, data[i].p->info.name, 20, name, 20);
+			drawtext(name, &r_son, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		}
 		sx += x + 60;
 	}
 }
@@ -240,7 +305,7 @@ void Print(FT* A)
 				break;
 			}
 			//返回
-			if (m.x <= 495 && m.x >= 430 && m.y >= 405 && m.y <= 440)
+			if ((m.x <= 495 && m.x >= 430 && m.y >= 405 && m.y <= 440) || (m.x <= 380 && m.x >= 260) && m.y <= 180 && m.y >= 100)
 			{
 				if (tree->fa != NULL)
 				{
@@ -317,6 +382,8 @@ void PrintN(FT* A)
 		if (t.deep == n)
 		{
 			printInfo(t.node);
+			if (t.node->info.isMarried)
+				printInfo(t.node->spouse);
 		}
 		FT* tmp = t.node;
 		if (t.node->fir)
@@ -330,6 +397,7 @@ void PrintN(FT* A)
 			if (t.deep == n)
 			{
 				printInfo(tmp);
+				printInfo(tmp->spouse);
 			}
 			if (tmp->fir)
 			{
@@ -350,7 +418,12 @@ void dfsSearchByName(FT* A, char* name)
 		if (A->fa)
 			printInfo(A->fa);
 		else
-			cout << "族谱中无其父亲信息" << endl;
+			cout << "族谱中无其父亲信息" << endl << endl;
+		cout << "其母亲：" << endl;
+		if (A->fa && A->fa->spouse)
+			printInfo(A->fa->spouse);
+		else
+			cout << "族谱中无其母亲信息" << endl << endl;
 		cout << "其孩子：" << endl;
 		if (A->fir)
 		{
@@ -364,7 +437,40 @@ void dfsSearchByName(FT* A, char* name)
 		}
 		else
 			cout << "族谱中无其孩子信息" << endl;
+		cout << "==========================================" << endl;
+		system("pause");
 	}
+	if (A->spouse)
+		if (!strcmp(A->spouse->info.name, name))
+		{
+			cout << "本人：" << endl;
+			printInfo(A->spouse);
+			cout << "其父亲：" << endl;
+			if (A->fa)
+				printInfo(A->fa);
+			else
+				cout << "族谱中无其父亲信息" << endl;
+			cout << "其母亲：" << endl;
+			if (A->fa && A->fa->spouse)
+				printInfo(A->fa->spouse);
+			else
+				cout << "族谱中无其母亲信息" << endl;
+			cout << "其孩子：" << endl;
+			if (A->fir)
+			{
+				FT* p = A->fir;
+				printInfo(p);
+				while (p->bro)
+				{
+					p = p->bro;
+					printInfo(p);
+				}
+			}
+			else
+				cout << "族谱中无其孩子信息" << endl;
+			cout << "==========================================" << endl;
+			system("pause");
+		}
 	if (A->fir)
 		dfsSearchByName(A->fir, name);
 	if (A->bro)
@@ -395,7 +501,12 @@ void dfsSearchByDate(FT* A, char* name)
 		if (A->fa)
 			printInfo(A->fa);
 		else
-			cout << "族谱中无其父亲信息" << endl;
+			cout << "族谱中无其父亲信息" << endl << endl;
+		cout << "其母亲：" << endl;
+		if (A->fa && A->fa->spouse)
+			printInfo(A->fa->spouse);
+		else
+			cout << "族谱中无其母亲信息" << endl << endl;
 		cout << "其孩子：" << endl;
 		if (A->fir)
 		{
@@ -409,7 +520,40 @@ void dfsSearchByDate(FT* A, char* name)
 		}
 		else
 			cout << "族谱中无其孩子信息" << endl;
+		cout << "==========================================" << endl;
+		system("pause");
 	}
+	if (A->spouse)
+		if (!strcmp(A->spouse->info.birth, name))
+		{
+			cout << "本人：" << endl;
+			printInfo(A->spouse);
+			cout << "其父亲：" << endl;
+			if (A->fa)
+				printInfo(A->fa);
+			else
+				cout << "族谱中无其父亲信息" << endl;
+			cout << "其母亲：" << endl;
+			if (A->fa && A->fa->spouse)
+				printInfo(A->fa->spouse);
+			else
+				cout << "族谱中无其母亲信息" << endl;
+			cout << "其孩子：" << endl;
+			if (A->fir)
+			{
+				FT* p = A->fir;
+				printInfo(p);
+				while (p->bro)
+				{
+					p = p->bro;
+					printInfo(p);
+				}
+			}
+			else
+				cout << "族谱中无其孩子信息" << endl;
+			cout << "==========================================" << endl;
+			system("pause");
+		}
 	if (A->fir)
 		dfsSearchByDate(A->fir, name);
 	if (A->bro)
@@ -475,10 +619,10 @@ void SearchByDate(FT* A)
 	cout << "查询完毕" << endl;
 }
 
-int Finds(FT*A,FT*S)
+int Finds(FT* A, FT* S)
 {
 	int a = -1, b = -1;
-	if (A == S)
+	if (A == S || A->spouse == S)
 		return 0;
 	else
 	{
@@ -491,13 +635,13 @@ int Finds(FT*A,FT*S)
 			b = Finds(A->bro, S);
 		}
 	}
-	if (a <=0&&b<0)
+	if (a <= 0 && b < 0)
 		return -1;
 	else
-		return a>b?a:b;
+		return a > b ? a : b;
 }
 
-int LCA(FT* A, FT* T1, FT* T2,FT *fa)
+int LCA(FT* A, FT* T1, FT* T2, FT* fa)
 {
 	if (A == T1 || A == T2)
 	{
@@ -505,17 +649,22 @@ int LCA(FT* A, FT* T1, FT* T2,FT *fa)
 		else fa = T2;
 		return Finds(A, T1) - Finds(A, T2);
 	}
-	int pos1 = Finds(A->fir, T1)+1;
-	int pos2 = Finds(A->fir, T2)+1;
-	if (pos1==0&&pos2==0)
+	int pos1 = 0;
+	int pos2 = 0;
+	if (A->fir)
 	{
-		return LCA(A->bro, T1, T2,fa);
+		pos1 = Finds(A->fir, T1) + 1;
+		pos2 = Finds(A->fir, T2) + 1;
 	}
-	else if (pos1==0&&pos2>0)
+	if (pos1 == 0 && pos2 == 0)
+	{
+		return LCA(A->bro, T1, T2, fa);
+	}
+	else if (pos1 == 0 && pos2 > 0)
 	{
 		fa = A;
 		pos1 = Finds(A->bro, T1);
-		return pos1-pos2;
+		return pos1 - pos2;
 	}
 	else if (pos2 == 0 && pos1 > 0)
 	{
@@ -525,7 +674,7 @@ int LCA(FT* A, FT* T1, FT* T2,FT *fa)
 	}
 	else
 	{
-		return LCA(A->fir, T1, T2,fa);
+		return LCA(A->fir, T1, T2, fa);
 	}
 }
 
@@ -538,8 +687,16 @@ FT* dfsRelation(FT* A, char* name)
 		cin.ignore();
 		char c = getchar();
 		if (c == 'y' || c == 'Y') return A;
-		else return NULL;
 	}
+	if (A->spouse)
+		if (!strcmp(A->spouse->info.name, name))
+		{
+			printInfo(A->spouse);
+			cout << "是否为查询对象？(Y/N):";
+			cin.ignore();
+			char c = getchar();
+			if (c == 'y' || c == 'Y') return A->spouse;
+		}
 	FT* p1 = NULL, * p2 = NULL;
 	if (A->fir) p1 = dfsRelation(A->fir, name);
 	if (p1) return p1;
@@ -557,12 +714,12 @@ void Relation(FT* A)
 	}
 	char Seniority[8][20] = { "兄弟","父亲","祖父","曾祖","玄祖","高祖","太祖","元祖" };
 	char name1[20], name2[20];
-	FT* T1, * T2,*fa=A;
+	FT* T1, * T2, * fa = A;
 	cout << "输入你要查找的两人姓名" << endl;
 	cout << "输入第一个人的姓名：";
 	cin.ignore();
 	cin >> name1;
-	T1=dfsRelation(A, name1);
+	T1 = dfsRelation(A, name1);
 	if (!T1)
 	{
 		cout << "查无此人" << endl;
@@ -579,22 +736,22 @@ void Relation(FT* A)
 	}
 	cout << "=========================================" << endl;
 	cout << "结果如下" << endl;
-	int ans= LCA(A, T1, T2, fa);
+	int ans = LCA(A, T1, T2, fa);
 	cout << "他们相差" << abs(ans) << "代" << endl;
 	if (!ans)
 	{
-		cout << T1->info.name << "和" << T2->info.name << "是兄弟关系" << endl;
+		cout << name1 << "和" << name2 << "是兄弟关系" << endl;
 	}
 	else if (ans < 0)
 	{
 		ans = -1 * ans;
 		int i = ans > 7 ? 7 : ans;
-		cout << T1->info.name << "是" << T2->info.name << "的" << Seniority[i]<<"辈"<< endl;
+		cout << name1 << "是" << name2 << "的" << Seniority[i] << "辈" << endl;
 	}
 	else
 	{
 		int i = ans > 7 ? 7 : ans;
-		cout << T2->info.name << "是" << T1->info.name << "的" << Seniority[i] << "辈" << endl;
+		cout << name2 << "是" << name1 << "的" << Seniority[i] << "辈" << endl;
 	}
 }
 
@@ -607,8 +764,16 @@ FT* dfsInsert(FT* A, char* name)
 		cin.ignore();
 		char c = getchar();
 		if (c == 'y' || c == 'Y') return A;
-		else return NULL;
 	}
+	if (A->spouse)
+		if (!strcmp(A->spouse->info.name, name))
+		{
+			printInfo(A->spouse);
+			cout << "是否为插入对象？(Y/N):";
+			cin.ignore();
+			char c = getchar();
+			if (c == 'y' || c == 'Y') return A;
+		}
 	FT* p1 = NULL, * p2 = NULL;
 	if (A->fir) p1 = dfsInsert(A->fir, name);
 	if (p1) return p1;
@@ -770,6 +935,125 @@ void Insert(FT* A)
 		cout << "输入的日期为" << death << endl;
 		strcpy(t->info.death, death);
 	}
+	if (t->info.isMarried)
+	{
+		t->spouse = (FT*)malloc(sizeof(FT));
+		cout << "==============================================================" << endl;
+		cout << "开始添加其配偶信息" << endl;
+		cout << "输入该成员的姓名：";
+		cin >> t->spouse->info.name;
+		cout << "输入该成员的生日" << endl;
+		char data[12];
+		int year, month, day;
+		while (1)
+		{
+			cout << "输入年份：";
+			cin >> year;
+			if (year < 10000 && year >= 0)
+				break;
+			else
+				cout << "格式错误!" << endl;
+		}
+		while (1)
+		{
+			cout << "输入月份：";
+			cin >> month;
+			if (month <= 12 && month >= 1)
+				break;
+			else
+				cout << "格式错误!" << endl;
+		}
+		while (1)
+		{
+			cout << "输入日数：";
+			cin >> day;
+			if (day <= 31 && day >= 1)
+				break;
+			else
+				cout << "格式错误!" << endl;
+		}
+		_itoa(year, data, 10);
+		data[4] = '-';
+		if (month / 10)
+			_itoa(month, data + 5, 10);
+		else
+		{
+			data[5] = '0';
+			_itoa(month, data + 6, 10);
+		}
+		data[7] = '-';
+		if (day / 10)
+			_itoa(day, data + 8, 10);
+		else
+		{
+			data[8] = '0';
+			_itoa(day, data + 9, 10);
+		}
+		cout << "输入的生日为" << data << endl;
+		strcpy(t->spouse->info.birth, data);
+		t->spouse->info.isMarried = 1;
+		cout << "输入地址：";
+		cin >> t->spouse->info.address;
+		cout << "是否健在(Y/N)：";
+		cin.ignore();
+		c = getchar();
+		if (c == 'y' || c == 'Y')
+		{
+			t->spouse->info.isdeath = 0;
+		}
+		else
+		{
+			t->spouse->info.isdeath = 1;
+			char death[12];
+			cout << "输入其死亡日期" << endl;
+			while (1)
+			{
+				cout << "输入年份：";
+				cin >> year;
+				if (year < 10000 && year >= 0)
+					break;
+				else
+					cout << "格式错误!" << endl;
+			}
+			while (1)
+			{
+				cout << "输入月份：";
+				cin >> month;
+				if (month <= 12 && month >= 1)
+					break;
+				else
+					cout << "格式错误!" << endl;
+			}
+			while (1)
+			{
+				cout << "输入日数：";
+				cin >> day;
+				if (day <= 31 && day >= 1)
+					break;
+				else
+					cout << "格式错误!" << endl;
+			}
+			_itoa(year, death, 10);
+			death[4] = '-';
+			if (month / 10)
+				_itoa(month, death + 5, 10);
+			else
+			{
+				death[5] = '0';
+				_itoa(month, death + 6, 10);
+			}
+			death[7] = '-';
+			if (day / 10)
+				_itoa(day, death + 8, 10);
+			else
+			{
+				death[8] = '0';
+				_itoa(day, death + 9, 10);
+			}
+			cout << "输入的日期为" << death << endl;
+			strcpy(t->spouse->info.death, death);
+		}
+	}
 }
 
 void deleteTree(FT* A)
@@ -813,6 +1097,29 @@ void dfsdelete(FT* A, char* name)
 			return;
 		}
 	}
+	if (A->spouse)
+		if (!strcmp(A->spouse->info.name, name))
+		{
+			printInfo(A->spouse);
+			cout << "是否为删除对象？(Y/N):";
+			cin.ignore();
+			char c = getchar();
+			if (c == 'y' || c == 'Y')
+			{
+				if (A->prebro)
+				{
+					A->prebro->bro = A->bro;
+				}
+				else
+				{
+					A->fa->fir = A->bro;
+				}
+				if (A->fir)
+					deleteTree(A->fir);
+				free(A);
+				return;
+			}
+		}
 	if (A->fir) dfsdelete(A->fir, name);
 	if (A->bro) dfsdelete(A->bro, name);
 }
@@ -841,9 +1148,17 @@ FT* dfschange(FT* A, char* name)
 		char c = getchar();
 		if (c == 'y' || c == 'Y')
 			return A;
-		else
-			return NULL;
 	}
+	if (A->spouse)
+		if (!strcmp(A->spouse->info.name, name))
+		{
+			printInfo(A->spouse);
+			cout << "是否为修改对象？(Y/N):";
+			cin.ignore();
+			char c = getchar();
+			if (c == 'y' || c == 'Y')
+				return A->spouse;
+		}
 	FT* p1 = NULL, * p2 = NULL;
 	if (A->fir) p1 = dfschange(A->fir, name);
 	if (p1) return p1;
